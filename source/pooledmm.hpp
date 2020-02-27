@@ -23,7 +23,7 @@ private:
 
 public:
   TNonFreePooledMemManager() {
-    cur_size = sizeof(T) * 8;
+    cur_size = sizeof(T) * 16;
     cur_item = nullptr;
     end_item = nullptr;
   }
@@ -38,7 +38,7 @@ public:
         free(items[i]);
       items.clear();
     }
-    cur_size = sizeof(T) * 8;
+    cur_size = sizeof(T) * 16;
     cur_item = nullptr;
     end_item = nullptr;
   }
@@ -60,7 +60,7 @@ public:
   inline void enumerate_items(const TEnumItemsProc proc) noexcept {
     if (items.size() > 0) {
       const size_t count = items.size();
-      size_t size = sizeof(T) * 8;
+      size_t size = sizeof(T) * 16;
       for (size_t i = 0; i < count; ++i) {
         size += size;
         uint8_t* p = static_cast<uint8_t*>(items[i]);
