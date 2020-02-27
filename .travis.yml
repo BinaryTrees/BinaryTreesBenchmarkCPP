@@ -1,0 +1,7 @@
+language: cpp
+os: linux
+dist: bionic
+compiler: gcc
+
+script:
+  - bash ./.travis.sh
