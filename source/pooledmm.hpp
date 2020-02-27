@@ -14,6 +14,9 @@ public:
 
 private:
   size_t cur_size;
+  // The only reason these are `uint8_t*` is because C++ annoyingly warns on `void*` arithmetic,
+  // despite the fact that every compiler I'm aware of treats it completely identically to `uint8_t*`
+  // arithmetic as far as "default increment / decrement size in bytes" (which is 1 byte).
   uint8_t* cur_item;
   uint8_t* end_item;
   TPointerList items;
