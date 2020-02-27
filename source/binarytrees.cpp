@@ -22,7 +22,7 @@ struct TNode {
     return 1;
   }
 
-  static inline TNode* make_tree(const int32_t depth, TNodePool* mp) noexcept {
+  static inline TNode* make_tree(const int32_t depth, TNodePool* const mp) noexcept {
     auto const result = mp->new_item();
     if (depth > 0) {
       result->right = make_tree(depth - 1, mp);
@@ -60,7 +60,7 @@ int main(int argc, char* argv[]) {
     item->iterations = 1 << (max_depth - i * 2);
     item->check = 0;
     TNode::TNodePool ipool;
-    for (int32_t J = 1; J <= item->iterations; ++J) {
+    for (int32_t j = 1; j <= item->iterations; ++j) {
       item->check += TNode::check_node(TNode::make_tree(item->depth, &ipool));
       ipool.clear();
     }
@@ -75,4 +75,6 @@ int main(int argc, char* argv[]) {
   // Check and destroy the long lived tree.
   printf("%s%u%s%d\n", "long lived tree of depth ", max_depth, "\t check: ", TNode::check_node(tree));
   pool.clear();
+  
+  return 0;
 }
