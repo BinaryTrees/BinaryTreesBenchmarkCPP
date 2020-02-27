@@ -1,3 +1,7 @@
+// Original author: Akira1364
+// Year: 2020
+// License: MIT
+
 #include <cstdlib>
 #include <cstdint>
 #include <cstring>
