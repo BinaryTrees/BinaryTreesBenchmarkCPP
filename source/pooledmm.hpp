@@ -2,8 +2,8 @@
 // Year: 2020
 // License: MIT
 
-#include <cstdlib>
 #include <cstdint>
+#include <cstdlib>
 #include <cstring>
 #include <vector>
 
@@ -25,7 +25,9 @@ public:
     end_item = nullptr;
   }
 
-  ~TNonFreePooledMemManager() { clear(); }
+  ~TNonFreePooledMemManager() {
+    clear();
+  }
 
   inline void clear() noexcept {
     if (items.size() > 0) {
