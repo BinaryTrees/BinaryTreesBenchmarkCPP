@@ -1,7 +1,9 @@
 language: cpp
 os: linux
 dist: bionic
-compiler: gcc
+compiler:
+  - gcc
+  - clang
 
 script:
   - bash ./.travis.sh
