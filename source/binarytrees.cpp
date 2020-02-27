@@ -37,7 +37,7 @@ static TDataRec data[9];
 static constexpr uint8_t min_depth = 4;
 
 int main(int argc, char* argv[]) {
-  const uint8_t max_depth = argc == 2 ? atoi(argv[1]) : 21;
+  const uint8_t max_depth = argc == 2 ? atoi(argv[1]) : 10;
 
   // Create and destroy a tree of depth `max_depth + 1`.
   TNode::TNodePool pool;
