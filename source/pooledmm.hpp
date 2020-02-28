@@ -5,32 +5,30 @@
 #include <cstdint>
 #include <cstdlib>
 #include <cstring>
+#include <type_traits>
 #include <vector>
 
-template <typename T> class TNonFreePooledMemManager {
-public:
-  using TPointerList = std::vector<void*>;
-  using TEnumItemsProc = void (*)(T* const);
+template <typename T, const size_t initial_size = 4> class TNonFreePooledMemManager {
+  static_assert(std::is_trivially_default_constructible<T>::value,
+                "T must be trivially default constructible!");
 
 private:
   size_t cur_size;
   // The only reason these are `uint8_t*` is because C++ annoyingly warns on `void*` arithmetic,
-  // despite the fact that every compiler I'm aware of treats it completely identically to `uint8_t*`
-  // arithmetic as far as "default increment / decrement size in bytes" (which is 1 byte).
+  // despite the fact that every compiler I'm aware of treats it completely identically to
+  // `uint8_t*` arithmetic as far as "default increment/decrement size in bytes" (which is 1 byte).
   uint8_t* cur_item;
   uint8_t* end_item;
-  TPointerList items;
+  std::vector<void*> items;
 
 public:
   TNonFreePooledMemManager() {
-    cur_size = sizeof(T) * 16;
+    cur_size = sizeof(T) * initial_size;
     cur_item = nullptr;
     end_item = nullptr;
   }
 
-  ~TNonFreePooledMemManager() {
-    clear();
-  }
+  ~TNonFreePooledMemManager() { clear(); }
 
   inline void clear() noexcept {
     if (items.size() > 0) {
@@ -38,7 +36,7 @@ public:
         free(items[i]);
       items.clear();
     }
-    cur_size = sizeof(T) * 16;
+    cur_size = sizeof(T) * initial_size;
     cur_item = nullptr;
     end_item = nullptr;
   }
@@ -57,10 +55,12 @@ public:
     return result;
   }
 
+  using TEnumItemsProc = void (*)(T* const);
+
   inline void enumerate_items(const TEnumItemsProc proc) noexcept {
     if (items.size() > 0) {
       const size_t count = items.size();
-      size_t size = sizeof(T) * 16;
+      size_t size = sizeof(T) * initial_size;
       for (size_t i = 0; i < count; ++i) {
         size += size;
         uint8_t* p = static_cast<uint8_t*>(items[i]);
