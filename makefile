@@ -5,7 +5,7 @@ endif
 ifeq ($(OS), Windows_NT)
 	EXT = .exe
 else
-	ext =
+	EXT =
 endif
 
 build:
