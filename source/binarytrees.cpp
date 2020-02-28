@@ -3,7 +3,7 @@
 // License: MIT
 
 #include "pooledmm.hpp"
-#include <cstdio>
+#include <iostream>
 
 struct TDataRec {
   uint8_t depth;
@@ -12,7 +12,7 @@ struct TDataRec {
 };
 
 struct TNode {
-  using TNodePool = TNonFreePooledMemManager<TNode, 16>;
+  using TNodePool = TNonFreePooledMemManager<TNode>;
   TNode* left;
   TNode* right;
 
@@ -41,10 +41,9 @@ int main(int argc, char* argv[]) {
 
   // Create and destroy a tree of depth `max_depth + 1`.
   TNode::TNodePool pool;
-  // `printf` is often faster than `cout`, so I use it instead for this
-  // benchmark just to be on the safe side.
-  printf("%s%u%s%d\n", "stretch tree of depth ", max_depth + 1,
-         "\t check: ", TNode::check_node(TNode::make_tree(max_depth + 1, &pool)));
+  // `cout` can't display `uint8_t` directly...
+  std::cout << "stretch tree of depth " << static_cast<uint16_t>(max_depth + 1)
+            << "\t check: " << TNode::check_node(TNode::make_tree(max_depth + 1, &pool)) << "\n";
   pool.clear();
 
   // Create a "long lived" tree of depth `max_depth`.
@@ -53,7 +52,7 @@ int main(int argc, char* argv[]) {
   // While the tree stays live, create multiple trees. Local data is stored in
   // the `data` variable.
   const uint8_t high_index = (max_depth - min_depth) / 2 + 1;
-#pragma omp parallel for
+  #pragma omp parallel for
   for (uint8_t i = 0; i < high_index; ++i) {
     TDataRec* const item = &data[i];
     item->depth = min_depth + i * 2;
@@ -69,13 +68,13 @@ int main(int argc, char* argv[]) {
   // Display the results.
   for (uint8_t i = 0; i < high_index; ++i) {
     const TDataRec* const item = &data[i];
-    printf("%d%s%u%s%d\n", item->iterations, "\t trees of depth ", item->depth,
-           "\t check: ", item->check);
+    std::cout << item->iterations << "\t trees of depth " << static_cast<uint16_t>(item->depth)
+              << "\t check: " << item->check << "\n";
   }
 
   // Check and destroy the long lived tree.
-  printf("%s%u%s%d\n", "long lived tree of depth ", max_depth,
-         "\t check: ", TNode::check_node(tree));
+  std::cout << "long lived tree of depth " << static_cast<uint16_t>(max_depth)
+            << "\t check: " << TNode::check_node(tree) << "\n";
   pool.clear();
 
   return 0;

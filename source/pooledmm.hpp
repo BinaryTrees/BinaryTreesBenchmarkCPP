@@ -8,9 +8,10 @@
 #include <type_traits>
 #include <vector>
 
-template <typename T, const size_t initial_size = 4> class TNonFreePooledMemManager {
-  static_assert(std::is_trivially_default_constructible<T>::value,
-                "T must be trivially default constructible!");
+template <typename T, const size_t initial_size = 32> class TNonFreePooledMemManager {
+  static_assert(std::is_trivially_default_constructible<T>::value &&
+                std::is_trivially_destructible<T>::value,
+                "T must be trivially default constructible and trivially destructible!");
 
 private:
   size_t cur_size;
@@ -45,6 +46,8 @@ public:
     if (cur_item == end_item) {
       cur_size += cur_size;
       cur_item = static_cast<uint8_t*>(malloc(cur_size));
+      // No explicit cast necessary here, which is pretty
+      // inconsistent if you ask me...
       items.push_back(cur_item);
       end_item = cur_item;
       end_item += cur_size;
@@ -57,6 +60,9 @@ public:
 
   using TEnumItemsProc = void (*)(T* const);
 
+  // Note that this enumerates *all allocated* items, i.e. a number
+  // which is always greater than both `items.size()` and the number
+  // of times that `new_item()` has been called.
   inline void enumerate_items(const TEnumItemsProc proc) noexcept {
     if (items.size() > 0) {
       const size_t count = items.size();
