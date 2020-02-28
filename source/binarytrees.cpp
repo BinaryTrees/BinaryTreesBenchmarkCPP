@@ -53,7 +53,7 @@ int main(int argc, char* argv[]) {
   // While the tree stays live, create multiple trees. Local data is stored in
   // the `data` variable.
   const uint8_t high_index = (max_depth - min_depth) / 2 + 1;
-#pragma omp parallel for
+  #pragma omp parallel for
   for (uint8_t i = 0; i < high_index; ++i) {
     TDataRec* const item = &data[i];
     item->depth = min_depth + i * 2;
