@@ -38,10 +38,10 @@ public:
       for (size_t i = 0; i < items.size(); ++i)
         free(items[i]);
       items.clear();
+      cur_size = sizeof(T) * initial_size;
+      cur_item = nullptr;
+      end_item = nullptr;
     }
-    cur_size = sizeof(T) * initial_size;
-    cur_item = nullptr;
-    end_item = nullptr;
   }
 
   inline T* new_item() noexcept {
