@@ -8,28 +8,30 @@
 #include <type_traits>
 #include <vector>
 
-template <typename T, const size_t initial_size = 32> class TNonFreePooledMemManager {
+template <typename T, const size_t initial_size = 32> struct TNonFreePooledMemManager {
   static_assert(std::is_trivially_default_constructible<T>::value &&
                 std::is_trivially_destructible<T>::value,
                 "T must be trivially default constructible and trivially destructible!");
 
 private:
-  size_t cur_size;
+  // Disable copying, except for the default constructor.
+  TNonFreePooledMemManager(const TNonFreePooledMemManager&);
+  TNonFreePooledMemManager& operator=(const TNonFreePooledMemManager&);
+  
+  size_t cur_size = sizeof(T) * initial_size;
   // The only reason these are `uint8_t*` is because C++ annoyingly warns on `void*` arithmetic,
   // despite the fact that every compiler I'm aware of treats it completely identically to
   // `uint8_t*` arithmetic as far as "default increment/decrement size in bytes" (which is 1 byte).
-  uint8_t* cur_item;
-  uint8_t* end_item;
+  uint8_t* cur_item = nullptr;
+  uint8_t* end_item = nullptr;
   std::vector<void*> items;
 
 public:
-  TNonFreePooledMemManager() {
-    cur_size = sizeof(T) * initial_size;
-    cur_item = nullptr;
-    end_item = nullptr;
-  }
+  inline TNonFreePooledMemManager() noexcept = default;
 
-  ~TNonFreePooledMemManager() { clear(); }
+  inline ~TNonFreePooledMemManager() noexcept {
+    clear();
+  }
 
   inline void clear() noexcept {
     if (items.size() > 0) {
