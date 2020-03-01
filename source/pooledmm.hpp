@@ -8,7 +8,7 @@
 #include <type_traits>
 #include <vector>
 
-template <typename T, const size_t initial_size = 32> struct TNonFreePooledMemManager {
+template <typename T, const size_t initial_size = 64> struct TNonFreePooledMemManager {
   static_assert(std::is_trivially_default_constructible<T>::value &&
                 std::is_trivially_destructible<T>::value,
                 "T must be trivially default constructible and trivially destructible!");
@@ -30,8 +30,8 @@ public:
 
   inline void clear() noexcept {
     if (items.size() > 0) {
-      for (size_t i = 0; i < items.size(); ++i)
-        free(items[i]);
+      for (T* item : items)
+        free(item);
       items.clear();
       cur_size = initial_size;
       cur_item = nullptr;
@@ -47,7 +47,7 @@ public:
       end_item = cur_item;
       end_item += cur_size;
     }
-    T* result = cur_item;
+    T* const result = cur_item;
     cur_item += 1;
     memset(result, 0, sizeof(T));
     return result;
@@ -64,7 +64,7 @@ public:
       size_t size = initial_size;
       for (size_t i = 0; i < count; ++i) {
         size += size;
-        T* p = items[i];
+        T* const p = items[i];
         const T* last = p;
         last += size;
         if (i == count - 1)
