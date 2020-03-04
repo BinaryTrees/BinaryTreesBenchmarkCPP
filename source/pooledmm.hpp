@@ -31,7 +31,7 @@ public:
   inline void clear() noexcept {
     if (items.size() > 0) {
       for (T* item : items)
-        free(item);
+        std::free(item);
       items.clear();
       cur_size = initial_size;
       cur_item = nullptr;
@@ -42,14 +42,14 @@ public:
   inline T* new_item() noexcept {
     if (cur_item == end_item) {
       cur_size += cur_size;
-      cur_item = static_cast<T*>(malloc(cur_size * sizeof(T)));
+      cur_item = static_cast<T*>(std::malloc(cur_size * sizeof(T)));
       items.push_back(cur_item);
       end_item = cur_item;
       end_item += cur_size;
     }
     T* const result = cur_item;
     cur_item += 1;
-    memset(result, 0, sizeof(T));
+    std::memset(result, 0, sizeof(T));
     return result;
   }
 
