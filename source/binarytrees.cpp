@@ -23,7 +23,7 @@ struct TNode {
   }
 
   static inline TNode* make_tree(const int32_t depth, TNodePool* const mp) noexcept {
-    auto const result = mp->new_item();
+    TNode* const result = mp->new_item();
     if (depth > 0) {
       result->right = make_tree(depth - 1, mp);
       result->left = make_tree(depth - 1, mp);
@@ -47,7 +47,7 @@ int main(int argc, char* argv[]) {
   pool.clear();
 
   // Create a "long lived" tree of depth `max_depth`.
-  auto const tree = TNode::make_tree(max_depth, &pool);
+  TNode* const tree = TNode::make_tree(max_depth, &pool);
 
   // While the tree stays live, create multiple trees. Local data is stored in
   // the `data` variable.
