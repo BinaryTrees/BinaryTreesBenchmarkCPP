@@ -1,5 +1,12 @@
-language: cpp
-os: linux
+- os: linux
+  addons:
+    apt:
+      sources:
+        - ubuntu-toolchain-r-test
+      packages:
+        - g++-10
+        - clang-10
+language: cpp        
 dist: bionic
 compiler:
   - gcc
