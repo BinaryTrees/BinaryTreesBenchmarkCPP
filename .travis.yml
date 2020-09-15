@@ -1,11 +1,18 @@
-language: cpp
-os: linux
-dist: bionic
-compiler: gcc
-
-before_install:
-  - sudo apt-get -y install g++-10
-  - sudo apt-get -y install clang-11
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+            - clang-10
+      language: cpp
+      dist: bionic
+      compiler:
+        - gcc
+        - clang
 
 script:
   - bash ./.travis.sh
