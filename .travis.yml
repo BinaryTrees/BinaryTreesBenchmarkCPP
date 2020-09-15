@@ -1,18 +1,11 @@
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - groovy-devel
-          packages:
-            - g++-10
-            - clang-11
-      language: cpp        
-      dist: bionic
-      compiler:
-        - gcc
-        - clang
+- os: linux
+  language: cpp        
+  dist: bionic
+  compiler: gcc
+        
+before_install:
+  - sudo apt-get -y install g++-10
+  - sudo apt-get -y install clang-11
 
 script:
   - bash ./.travis.sh
