@@ -9,4 +9,4 @@ else
 endif
 
 build:
-	$(CXX) -DNDEBUG -fno-exceptions -fno-rtti -fopenmp -march=native -O3 -std=c++14 -o ./binarytrees_benchmark$(EXT) ./source/binarytrees.cpp
+	$(CXX) -DNDEBUG -fno-exceptions -fno-rtti -fopenmp -march=native -O3 -std=c++14 -o ./binarytrees$(EXT) ./source/binarytrees.cpp
