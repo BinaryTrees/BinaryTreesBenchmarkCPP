@@ -7,7 +7,7 @@ matrix:
             - ubuntu-toolchain-r-test
           packages:
             - g++-10
-            - clang-10
+            - clang-11
       language: cpp        
       dist: bionic
       compiler:
