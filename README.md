@@ -6,5 +6,5 @@ Recommended command line for building and running this:
 
 ```
 make build
-time ./binarytrees_benchmark 21
+time ./binarytrees 21
 ```
