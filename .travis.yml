@@ -1,14 +1,16 @@
-- os: linux
-  addons:
-    apt:
-      sources:
-        - ubuntu-toolchain-r-test
-      packages:
-        - g++-10
-        - clang-10
-language: cpp        
-dist: bionic
-compiler:
+matrix:
+  include:
+    - os: linux
+      addons:
+        apt:
+          sources:
+            - ubuntu-toolchain-r-test
+          packages:
+            - g++-10
+            - clang-10
+    language: cpp        
+    dist: bionic
+    compiler:
   - gcc
   - clang
 
