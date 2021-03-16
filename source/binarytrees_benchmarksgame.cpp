@@ -5,66 +5,23 @@
  * contributed by the Rust Project Developers (Rust)
  * contributed by TeXitoi (Rust)
  * contributed by Cristi Cobzarenco (Rust)
- * contributed by Matt Brubeck (Rust)
+ * contributed by Matt Brubeck (Rust) 
  * contributed by Dmytro Ovdiienko
- * contributed by Martin Jambrek
  *
  */
 
+#include <atomic>
+#include <numeric>
 #include <algorithm>
-#include <execution>
+#include <functional>
 #include <iostream>
 #include <memory_resource>
-#include <numeric>
+#include <thread>
 
 using MemoryPool = std::pmr::monotonic_buffer_resource;
 
-class CountingIterator {
-public:
-    using value_type = int;
-    using reference = int;
-    using pointer = int;
-    using difference_type = int;
-    using iterator_category = std::random_access_iterator_tag;
-
-    CountingIterator()
-        : val {}
-    {
-    }
-    CountingIterator(int v)
-        : val { v }
-    {
-    }
-
-    int operator*() const { return val; }
-    bool operator==(const CountingIterator& rhs) const { return val == rhs.val; }
-    bool operator!=(const CountingIterator& rhs) const { return !operator==(rhs); }
-    bool operator<(const CountingIterator& rhs) const { return val < rhs.val; }
-
-    CountingIterator& operator++()
-    {
-        ++val;
-        return *this;
-    }
-    CountingIterator& operator--()
-    {
-        --val;
-        return *this;
-    }
-    CountingIterator& operator+=(int v)
-    {
-        val += v;
-        return *this;
-    }
-
-    CountingIterator operator+(int v) const { return CountingIterator { val + v }; }
-    int operator-(CountingIterator const& rhs) const { return val - rhs.val; }
-
-private:
-    int val;
-};
-
-struct Node {
+struct Node
+{
     Node *l, *r;
 
     int check() const
@@ -76,24 +33,57 @@ struct Node {
     }
 };
 
-inline static Node* make(const int d, MemoryPool& store)
+Node* make(const int d, MemoryPool& store)
 {
-    void* mem = store.allocate(sizeof(Node), alignof(Node));
-    Node* root = new (mem) Node;
-    if (d > 0) {
+    Node* root = static_cast<Node*>(store.allocate(sizeof(Node)));
+    if (d > 0)
+    {
         root->l = make(d - 1, store);
         root->r = make(d - 1, store);
-    } else {
+    }
+    else
+    {
         root->l = root->r = nullptr;
     }
     return root;
 }
 
-constexpr auto MIN_DEPTH = 4;
+int run_parallel(unsigned depth, int iterations, unsigned int workers = std::thread::hardware_concurrency())
+{
+    std::vector<std::thread> threads;
+    threads.reserve(workers);
+
+    std::atomic_int counter = iterations;
+    std::atomic_int output = 0;
+
+    for(unsigned i = 0; i < workers; ++i) {
+        threads.push_back(std::thread([&counter, depth, &output] {
+            std::pmr::unsynchronized_pool_resource upperPool;
+            MemoryPool pool {4000, &upperPool};
+            int checksum = 0;
+
+            while(--counter >= 0) {
+                Node* a     = make(depth, pool);
+                checksum    += a->check();
+                pool.release();
+            }
+
+            output += checksum;
+        }));
+    }
+    
+    for(unsigned i = 0; i < workers; ++i) {
+        threads[i].join();
+    }
+
+    return output;
+}
+
+constexpr auto MIN_DEPTH     = 4;
 
 int main(int argc, char* argv[])
 {
-    const int max_depth = std::max(MIN_DEPTH + 2, (argc == 2 ? atoi(argv[1]) : 10));
+    const int max_depth     = std::max(MIN_DEPTH + 2, (argc == 2 ? atoi(argv[1]) : 10));
     const int stretch_depth = max_depth + 1;
 
     // Alloc then dealloc stretchdepth tree.
@@ -108,33 +98,12 @@ int main(int argc, char* argv[])
     MemoryPool long_lived_store;
     Node* long_lived_tree = make(max_depth, long_lived_store);
 
-    // Used as std::vector<std::pair<depth, checksum>>
-    std::vector<std::pair<int, int>> results((max_depth - MIN_DEPTH) / 2 + 1);
+    for (int d = MIN_DEPTH; d <= max_depth; d += 2)
+    {
+        const int iterations = 1 << (max_depth - d + MIN_DEPTH);
+        auto const c = run_parallel(d, iterations);
 
-    for (size_t i = 0; i < results.size(); ++i) {
-        results[i].first = i * 2 + MIN_DEPTH;
-    }
-
-    std::for_each(std::execution::par,
-        begin(results), end(results),
-        [max_depth](auto& res) {
-            int d = res.first;
-            int iters = 1 << (max_depth - d + MIN_DEPTH);
-            res.second = std::transform_reduce(std::execution::par,
-                CountingIterator(0), CountingIterator(iters),
-                0,
-                std::plus<> {},
-                [d](int) {
-                    thread_local std::pmr::unsynchronized_pool_resource upperPool;
-                    MemoryPool pool { &upperPool};
-                    return make(d, pool)->check();
-                });
-        });
-
-    for (const auto& [d, c] : results) {
-        std::cout << (1 << (max_depth - d + MIN_DEPTH))
-                  << "\t trees of depth " << d
-                  << "\t check: " << c << "\n";
+        std::cout << iterations << "\t trees of depth " << d << "\t check: " << c << "\n";
     }
 
     std::cout << "long lived tree of depth " << max_depth << "\t "
